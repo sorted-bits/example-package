@@ -1,10 +1,9 @@
 package:
-  name: Example Climate
+  name: example-climate
   version: 1.0.0
   description: Example climate device, for demonstration purposes
   author: Wim Haanstra
   entry: example-climate/example-climate.ts
-  identifier: example-climate
 
 attributes:
   heater:
