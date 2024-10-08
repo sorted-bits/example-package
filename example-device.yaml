@@ -31,11 +31,6 @@ attributes:
     min: 0
     max: 1000
 
-  trigger_action:
-    name: Trigger Action
-    type: device_automation
-    payload: '{"action": "toggle_sun"}'
-
   quantumhub_rating:
     name: QuantumHub Rating
     type: select
