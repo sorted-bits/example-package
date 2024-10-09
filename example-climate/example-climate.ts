@@ -94,19 +94,16 @@ class ExampleClimate implements Device {
     // If the device supports fan mode, we set the fan mode to auto and the fan modes to ['auto', 'low', 'medium', 'high'].
     if (has_fanmode) {
       this.provider.setAttributeValue('fan_mode', this.fanMode);
-      this.provider.setAttributeValue('fan_modes', ['auto', 'low', 'medium', 'high']);
     }
 
     // If the device supports swing mode, we set the swing mode to off and the swing modes to ['on', 'off'].
     if (has_swingmode) {
       this.provider.setAttributeValue('swing_mode', this.swingMode);
-      this.provider.setAttributeValue('swing_modes', ['on', 'off']);
     }
 
     // If the device supports preset mode, we set the preset mode to home and the preset modes to ['eco', 'away', 'boost', 'comfort', 'home', 'sleep', 'activity'].
     if (has_presetmode) {
       this.provider.setAttributeValue('preset_mode', this.presetMode);
-      this.provider.setAttributeValue('preset_modes', ['eco', 'away', 'boost', 'comfort', 'home', 'sleep', 'activity']);
     }
 
     // If the device supports humidity control, we set the humidity to 50 and the humidity range to 30-70.
@@ -118,7 +115,6 @@ class ExampleClimate implements Device {
 
     if (has_mode_control) {
       this.provider.setAttributeValue('mode', this.mode);
-      this.provider.setAttributeValue('modes', ['auto', 'off', 'cool', 'heat', 'dry']);
     }
   };
 
@@ -159,6 +155,13 @@ class ExampleClimate implements Device {
 
     this.targetHumidity = value;
     this.provider.setAttributeValue('target_humidity', this.targetHumidity);
+  };
+
+  onModeChanged = async (attribute: ClimateAttribute, value: string): Promise<void> => {
+    this.provider.logger.trace(`HVAC mode changed to ${value}`);
+
+    this.mode = value;
+    this.provider.setAttributeValue('mode', this.mode);
   };
 }
 

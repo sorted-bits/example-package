@@ -1,6 +1,6 @@
 package:
   name: example-climate
-  version: 1.0.0
+  version: 1.0.1
   description: Example climate device, for demonstration purposes
   author: Wim Haanstra
   entry: example-climate/example-climate.ts
@@ -16,3 +16,26 @@ attributes:
     has_humidity_control: true
     has_power_control: true
     has_mode_control: true
+    preset_modes:
+      - eco
+      - away
+      - boost
+      - comfort
+      - home
+      - sleep
+      - activity
+    fan_modes:
+      - auto
+      - low
+      - medium
+      - high
+    modes:
+      - auto
+      - off
+      - cool
+      - heat
+      - dry
+    swing_modes:
+      - on
+      - off
+    temperature_unit: C
