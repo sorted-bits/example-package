@@ -1,6 +1,6 @@
 package:
   name: example-device
-  version: 1.0.1
+  version: 1.0.2
   description: Example device, for demonstration purposes
   author: Wim Haanstra
   entry: example-device/example-device.ts
@@ -17,6 +17,18 @@ attributes:
     device_class: temperature
     state_class: measurement
     unavailability_value: -99
+
+  sun:
+    name: Sun
+    type: light
+    brightness: false
+    supported_color_modes:
+      - xy
+    white_scale: 255
+    effect: true
+    effect_list:
+      - breathing
+      - loop
 
   toggle_sun:
     name: Toggle Sun

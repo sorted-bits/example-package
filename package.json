@@ -7,6 +7,6 @@
   "author": "Wim Haanstra",
   "license": "ISC",
   "dependencies": {
-    "quantumhub-sdk": "1.5.8"
+    "quantumhub-sdk": "1.6.3"
   }
 }

@@ -1,6 +1,6 @@
-import { Attribute, ClimateAttribute, Device, DeviceType, Provider } from 'quantumhub-sdk';
+import { Attribute, ClimateAttribute, ClimateDevice, Provider } from 'quantumhub-sdk';
 
-class ExampleClimate implements Device {
+class ExampleClimate implements ClimateDevice {
   /**
    * Provider instance, this will give you access to the QuantumHub API
    * and allows you to interact with the QuantumHub server.
@@ -122,7 +122,7 @@ class ExampleClimate implements Device {
     this.provider.logger.trace(`Attribute ${attribute.name} changed to ${value}`);
   };
 
-  onTargetTemperatureChanged = async (attribute: ClimateAttribute, value: number): Promise<void> => {
+  onClimateTargetTemperatureChanged = async (attribute: ClimateAttribute, value: number): Promise<void> => {
     this.provider.logger.trace(`Target temperature changed to ${value}`);
 
     this.targetTemperature = value;
@@ -157,7 +157,7 @@ class ExampleClimate implements Device {
     this.provider.setAttributeValue('target_humidity', this.targetHumidity);
   };
 
-  onModeChanged = async (attribute: ClimateAttribute, value: string): Promise<void> => {
+  onClimateModeChanged = async (attribute: ClimateAttribute, value: string): Promise<void> => {
     this.provider.logger.trace(`HVAC mode changed to ${value}`);
 
     this.mode = value;

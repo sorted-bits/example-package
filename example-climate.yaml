@@ -1,6 +1,6 @@
 package:
   name: example-climate
-  version: 1.0.1
+  version: 1.0.2
   description: Example climate device, for demonstration purposes
   author: Wim Haanstra
   entry: example-climate/example-climate.ts

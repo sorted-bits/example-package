@@ -1,9 +1,39 @@
-import { Attribute, ButtonAttribute, Device, NumberAttribute, Provider, SceneAttribute, SelectAttribute, SwitchAttribute } from 'quantumhub-sdk';
+import {
+  Attribute,
+  ButtonAttribute,
+  ButtonDevice,
+  Device,
+  LightAttribute,
+  LightColor,
+  LightDevice,
+  NumberAttribute,
+  NumberDevice,
+  Provider,
+  SceneAttribute,
+  SceneDevice,
+  SelectAttribute,
+  SelectDevice,
+  SwitchAttribute,
+  SwitchDevice
+} from 'quantumhub-sdk';
 
-class ExampleDevice implements Device {
+class ExampleDevice implements Device, SceneDevice, LightDevice, SwitchDevice, NumberDevice, SelectDevice, ButtonDevice {
   // This variable is used to keep track of the state of the sun toggle.
   private sunToggle: boolean = true;
+  private lightToggle: boolean = true;
   private quantumhubRating: string = 'Awesome';
+
+  private lightColor: LightColor = { r: 100, g: 0, b: 0, w: 125 };
+
+  private lightData = () => {
+    return {
+      state: this.lightToggle ? 'ON' : 'OFF',
+      brightness: this.lightToggle ? 100 : 25,
+      color_mode: 'rgbw',
+      color: this.lightColor
+    };
+  };
+
 
   /**
    * Provider instance, this will give you access to the QuantumHub API
@@ -45,12 +75,17 @@ class ExampleDevice implements Device {
 
     /* For the example swich we set the state at start only */
     this.provider.setAttributeValue('toggle_sun', this.sunToggle ? 'ON' : 'OFF');
+    this.provider.setAttributeValue('sun_brightness', 75);
+    this.provider.setAttributeValue('quantumhub_rating', this.quantumhubRating);
+
+    this.provider.setAttributeValue('sun', this.lightData());
 
     this.timeoutId = this.provider.timeout.set(async () => {
       this.update();
     }, 1000);
 
     this.provider.cache.set('last_action', 'start');
+
   };
 
   /**
@@ -97,7 +132,7 @@ class ExampleDevice implements Device {
 
     this.provider.setAttributeValue('random_location', { latitude: latitude, longitude: longitude });
 
-    this.timeoutId = this.provider.timeout.set(this.update.bind(this), 1000);
+    // this.timeoutId = this.provider.timeout.set(this.update.bind(this), 1000);
 
     this.provider.cache.set('last_action', 'update');
 
@@ -105,7 +140,12 @@ class ExampleDevice implements Device {
 
   onButtonPressed = async (attribute: ButtonAttribute): Promise<void> => {
     //    this.provider.logger.info('Button pressed:', attribute.name);
-    throw new Error('Button pressed, crashing the device');
+
+    this.lightToggle = !this.lightToggle;
+    this.sunToggle = !this.sunToggle;
+
+    this.provider.setAttributeValue('toggle_sun', this.sunToggle ? 'ON' : 'OFF');
+    this.provider.setAttributeValue('sun', this.lightData());
   };
 
   onSelectChanged = async (attribute: SelectAttribute, value: string): Promise<void> => {
@@ -127,6 +167,23 @@ class ExampleDevice implements Device {
   valueChanged = async (attribute: Attribute, value: any): Promise<void> => {
     this.provider.logger.trace(`Attribute ${attribute.name} changed to ${value}`);
   };
+
+  onLightPowerChanged = async (attribute: LightAttribute, value: boolean): Promise<void> => {
+    this.provider.logger.info('Light power changed:', attribute.name, value);
+  }
+
+  onLightBrightnessChanged = async (attribute: LightAttribute, value: number): Promise<void> => {
+    this.provider.logger.info('Light brightness changed:', attribute.name, value);
+  }
+
+  onLightColorChanged = async (attribute: LightAttribute, value: LightColor): Promise<void> => {
+    this.provider.logger.info('Light color changed:', attribute.name, value);
+  }
+
+  onLightEffectChanged = async (attribute: LightAttribute, value: string): Promise<void> => {
+    this.provider.logger.info('Light effect changed:', attribute.name, value);
+  }
+
 }
 
 export default ExampleDevice;
