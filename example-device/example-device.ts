@@ -1,8 +1,15 @@
 import {
   Attribute,
+  BaseAttribute,
+  BaseAttributeWithState,
   ButtonAttribute,
   ButtonDevice,
   Device,
+  DeviceTrackerAttribute,
+  DeviceType,
+  FanAttribute,
+  FanDevice,
+  FanState,
   LightAttribute,
   LightColor,
   LightDevice,
@@ -17,23 +24,11 @@ import {
   SwitchDevice
 } from 'quantumhub-sdk';
 
-class ExampleDevice implements Device, SceneDevice, LightDevice, SwitchDevice, NumberDevice, SelectDevice, ButtonDevice {
-  // This variable is used to keep track of the state of the sun toggle.
-  private sunToggle: boolean = true;
-  private lightToggle: boolean = true;
-  private quantumhubRating: string = 'Awesome';
+class ExampleDevice implements Device, SceneDevice, LightDevice, SwitchDevice, NumberDevice, SelectDevice, ButtonDevice, FanDevice {
 
-  private lightColor: LightColor = { r: 100, g: 0, b: 0, w: 125 };
-
-  private lightData = () => {
-    return {
-      state: this.lightToggle ? 'ON' : 'OFF',
-      brightness: this.lightToggle ? 100 : 25,
-      color_mode: 'rgbw',
-      color: this.lightColor
-    };
-  };
-
+  private timeAttribute?: BaseAttributeWithState;
+  private temperatureAttribute?: BaseAttributeWithState;
+  private locationAttribute?: DeviceTrackerAttribute;
 
   /**
    * Provider instance, this will give you access to the QuantumHub API
@@ -73,12 +68,47 @@ class ExampleDevice implements Device, SceneDevice, LightDevice, SwitchDevice, N
   start = async (): Promise<void> => {
     this.provider.logger.info('Starting ExampleDevice');
 
-    /* For the example swich we set the state at start only */
-    this.provider.setAttributeValue('toggle_sun', this.sunToggle ? 'ON' : 'OFF');
-    this.provider.setAttributeValue('sun_brightness', 75);
-    this.provider.setAttributeValue('quantumhub_rating', this.quantumhubRating);
+    this.timeAttribute = this.provider.getAttribute<BaseAttributeWithState>('time');
+    this.temperatureAttribute = this.provider.getAttribute<BaseAttributeWithState>('random_temperature');
+    this.locationAttribute = this.provider.getAttribute<DeviceTrackerAttribute>('random_location');
 
-    this.provider.setAttributeValue('sun', this.lightData());
+
+    const toggleSunAttribute = this.provider.getAttribute<SwitchAttribute>('toggle_sun');
+    if (toggleSunAttribute) {
+      this.provider.setAttributeState(toggleSunAttribute, { state: false });
+    }
+
+    const sunBrightnessAttribute = this.provider.getAttribute<NumberAttribute>('sun_brightness');
+    if (sunBrightnessAttribute) {
+      this.provider.setAttributeState(sunBrightnessAttribute, { state: 50 });
+    }
+
+    const sunAttribute = this.provider.getAttribute<LightAttribute>('sun');
+    if (sunAttribute) {
+      this.provider.setAttributeState(sunAttribute, {
+        state: false,
+        brightness: 25,
+        color_mode: 'rgbw',
+        color: { r: 100, g: 0, b: 0, w: 125 },
+        effect: 'breathing'
+      });
+    }
+
+    const quantumhubRatingAttribute = this.provider.getAttribute<SelectAttribute>('quantumhub_rating');
+    if (quantumhubRatingAttribute) {
+      this.provider.setAttributeState(quantumhubRatingAttribute, { state: 'Great' });
+    }
+
+    const superFanAttribute = this.provider.getAttribute<FanAttribute>('super_fan');
+    if (superFanAttribute) {
+      this.provider.setAttributeState(superFanAttribute, {
+        state: false,
+        percentage: 0,
+        direction: 'forward',
+        preset_mode: 'auto',
+        oscillation: 'oscillate_off'
+      });
+    }
 
     this.timeoutId = this.provider.timeout.set(async () => {
       this.update();
@@ -118,46 +148,48 @@ class ExampleDevice implements Device, SceneDevice, LightDevice, SwitchDevice, N
     const currentDate = new Date();
 
     // Here we are triggering the QuantumHub API to update the value of the `time` attribute.
-    this.provider.setAttributeValue('time', currentDate.toLocaleString('nl-NL', { timeZone: timezone }));
+    if (this.timeAttribute) {
+      this.provider.setAttributeState(this.timeAttribute, { state: currentDate.toLocaleString('nl-NL', { timeZone: timezone }) });
+    }
 
     //this.provider.logger.trace(`Setting time: ${currentDate.toLocaleString('nl-NL', { timeZone: timezone })}`);
 
     const randomValue = Math.floor(Math.random() * 100);
 
-    // Here we are triggering the QuantumHub API to update the value of the `random_temperature` attribute.
-    this.provider.setAttributeValue('random_temperature', randomValue);
+    if (this.temperatureAttribute) {
+      this.provider.setAttributeState(this.temperatureAttribute, { state: randomValue });
+    }
 
-    const longitude = Math.floor(Math.random() * 360) - 180;
-    const latitude = Math.floor(Math.random() * 180) - 90;
+    if (this.locationAttribute) {
+      const longitude = Math.floor(Math.random() * 360) - 180;
+      const latitude = Math.floor(Math.random() * 180) - 90;
+      this.provider.setAttributeState(this.locationAttribute, { latitude, longitude });
+    }
 
-    this.provider.setAttributeValue('random_location', { latitude: latitude, longitude: longitude });
-
-    // this.timeoutId = this.provider.timeout.set(this.update.bind(this), 1000);
-
-    this.provider.cache.set('last_action', 'update');
-
+    this.timeoutId = this.provider.timeout.set(this.update.bind(this), 5000);
   };
 
+  //#region Event handlers
   onButtonPressed = async (attribute: ButtonAttribute): Promise<void> => {
-    //    this.provider.logger.info('Button pressed:', attribute.name);
-
-    this.lightToggle = !this.lightToggle;
-    this.sunToggle = !this.sunToggle;
-
-    this.provider.setAttributeValue('toggle_sun', this.sunToggle ? 'ON' : 'OFF');
-    this.provider.setAttributeValue('sun', this.lightData());
+    this.provider.logger.info('Button pressed:', attribute.name);
   };
 
   onSelectChanged = async (attribute: SelectAttribute, value: string): Promise<void> => {
     this.provider.logger.info('Select changed:', attribute.name, value);
+
+    this.provider.setAttributeState(attribute, { state: value });
   };
 
   onNumberChanged = async (attribute: NumberAttribute, value: number): Promise<void> => {
     this.provider.logger.info('Number changed:', attribute.name, value);
+
+    this.provider.setAttributeState(attribute, { state: value });
   };
 
   onSwitchChanged = async (attribute: SwitchAttribute, value: boolean): Promise<void> => {
     this.provider.logger.info('Switch changed:', attribute.name, value);
+
+    this.provider.setAttributeState(attribute, { state: value });
   };
 
   onSceneTriggered = async (attribute: SceneAttribute): Promise<void> => {
@@ -170,20 +202,41 @@ class ExampleDevice implements Device, SceneDevice, LightDevice, SwitchDevice, N
 
   onLightPowerChanged = async (attribute: LightAttribute, value: boolean): Promise<void> => {
     this.provider.logger.info('Light power changed:', attribute.name, value);
+
+    this.provider.setAttributeState(attribute, { state: value });
   }
 
   onLightBrightnessChanged = async (attribute: LightAttribute, value: number): Promise<void> => {
     this.provider.logger.info('Light brightness changed:', attribute.name, value);
+
+    this.provider.setAttributeState(attribute, { brightness: value });
   }
 
   onLightColorChanged = async (attribute: LightAttribute, value: LightColor): Promise<void> => {
     this.provider.logger.info('Light color changed:', attribute.name, value);
+
+    this.provider.setAttributeState(attribute, { color: value });
   }
 
   onLightEffectChanged = async (attribute: LightAttribute, value: string): Promise<void> => {
     this.provider.logger.info('Light effect changed:', attribute.name, value);
+
+    this.provider.setAttributeState(attribute, { effect: value });
   }
 
+  onFanPowerChanged = async (attribute: FanAttribute, value: boolean): Promise<void> => {
+    this.provider.logger.info('Fan power changed:', attribute.name, value);
+
+    this.provider.setAttributeState(attribute, { state: value });
+  }
+
+  onFanSpeedChanged = async (attribute: FanAttribute, value: number): Promise<void> => {
+    this.provider.logger.info('Speed changed!', value);
+
+    this.provider.setAttributeState(attribute, { percentage: value });
+  }
+  //#endregion
 }
 
 export default ExampleDevice;
+

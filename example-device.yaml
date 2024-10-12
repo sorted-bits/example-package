@@ -18,6 +18,21 @@ attributes:
     state_class: measurement
     unavailability_value: -99
 
+  super_fan:
+    name: Super Fan
+    type: fan
+    has_oscillation: true
+    has_direction: true
+    has_speed_control: true
+    speed_range_min: 1
+    speed_range_max: 10
+    preset_modes:
+      - auto
+      - smart
+      - whoosh
+      - eco
+      - breeze
+
   sun:
     name: Sun
     type: light

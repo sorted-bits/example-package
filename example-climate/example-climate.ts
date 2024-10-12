@@ -1,6 +1,25 @@
-import { Attribute, ClimateAttribute, ClimateDevice, Provider } from 'quantumhub-sdk';
+import { Attribute, ClimateAttribute, ClimateDevice, ClimateState, Provider } from 'quantumhub-sdk';
 
 class ExampleClimate implements ClimateDevice {
+  private climateAttribute!: ClimateAttribute;
+
+  private climateState: ClimateState = {
+    current_temperature: 20.5,
+    target_temperature: 21.5,
+    current_humidity: 56,
+    target_humidity: 60,
+    swing_mode: 'off',
+    preset_mode: 'home',
+    mode: 'off',
+    fan_mode: 'auto',
+    precision: 0.5,
+    min_temp: 1,
+    max_temp: 32,
+    temp_step: 0.5,
+    max_humidity: 70,
+    min_humidity: 30
+  };
+
   /**
    * Provider instance, this will give you access to the QuantumHub API
    * and allows you to interact with the QuantumHub server.
@@ -40,8 +59,12 @@ class ExampleClimate implements ClimateDevice {
   start = async (): Promise<void> => {
     this.provider.logger.info('Starting ExampleClimate');
 
-    /* For the example swich we set the state at start only */
-    this.setClimateAttributes();
+    const attribute = this.provider.getAttribute<ClimateAttribute>('heater');
+    if (attribute) {
+      this.climateAttribute = attribute;
+    }
+
+    this.provider.setAttributeState(this.climateAttribute, this.climateState);
   };
 
   /**
@@ -64,60 +87,6 @@ class ExampleClimate implements ClimateDevice {
     this.provider.logger.trace('Destroying TestDevice');
   };
 
-  private fanMode = 'auto';
-  private currentTemperature = 21.5;
-  private targetTemperature = 21.5;
-  private currentHumidity = 50;
-  private targetHumidity = 50;
-  private swingMode = 'off';
-  private presetMode = 'home';
-  private mode = 'off';
-  private action = 'heating';
-
-  setClimateAttributes = (): void => {
-    // For this example there is only one attribute, which has the type climate.
-    const attribute = this.provider.definition.attributes[0] as ClimateAttribute;
-
-    // The attribute contains information about the supported features of the device.
-    const { has_fanmode, has_swingmode, has_presetmode, has_humidity_control, has_mode_control, has_power_control } = attribute;
-
-    // this.provider.setAttributeValue('action', this.action);
-    this.provider.setAttributeValue('current_temperature', this.currentTemperature);
-    this.provider.setAttributeValue('target_temperature', this.targetTemperature);
-    this.provider.setAttributeValue('current_humidity', this.currentHumidity);
-
-    this.provider.setAttributeValue('precision', 0.5);
-    this.provider.setAttributeValue('min_temp', 1);
-    this.provider.setAttributeValue('max_temp', 32);
-    this.provider.setAttributeValue('temp_step', 0.5);
-
-    // If the device supports fan mode, we set the fan mode to auto and the fan modes to ['auto', 'low', 'medium', 'high'].
-    if (has_fanmode) {
-      this.provider.setAttributeValue('fan_mode', this.fanMode);
-    }
-
-    // If the device supports swing mode, we set the swing mode to off and the swing modes to ['on', 'off'].
-    if (has_swingmode) {
-      this.provider.setAttributeValue('swing_mode', this.swingMode);
-    }
-
-    // If the device supports preset mode, we set the preset mode to home and the preset modes to ['eco', 'away', 'boost', 'comfort', 'home', 'sleep', 'activity'].
-    if (has_presetmode) {
-      this.provider.setAttributeValue('preset_mode', this.presetMode);
-    }
-
-    // If the device supports humidity control, we set the humidity to 50 and the humidity range to 30-70.
-    if (has_humidity_control) {
-      this.provider.setAttributeValue('target_humidity', this.targetHumidity);
-      this.provider.setAttributeValue('max_humidity', 70);
-      this.provider.setAttributeValue('min_humidity', 30);
-    }
-
-    if (has_mode_control) {
-      this.provider.setAttributeValue('mode', this.mode);
-    }
-  };
-
   valueChanged = async (attribute: Attribute, value: any): Promise<void> => {
     this.provider.logger.trace(`Attribute ${attribute.name} changed to ${value}`);
   };
@@ -125,43 +94,37 @@ class ExampleClimate implements ClimateDevice {
   onClimateTargetTemperatureChanged = async (attribute: ClimateAttribute, value: number): Promise<void> => {
     this.provider.logger.trace(`Target temperature changed to ${value}`);
 
-    this.targetTemperature = value;
-    this.provider.setAttributeValue('target_temperature', this.targetTemperature);
+    this.provider.setAttributeState(attribute, { target_temperature: value });
   };
 
   onClimateFanModeChanged = async (attribute: ClimateAttribute, value: string): Promise<void> => {
     this.provider.logger.trace(`Fan mode changed to ${value}`);
 
-    this.fanMode = value;
-    this.provider.setAttributeValue('fan_mode', this.fanMode);
+    this.provider.setAttributeState(attribute, { fan_mode: value });
   };
 
   onClimateSwingModeChanged = async (attribute: ClimateAttribute, value: string): Promise<void> => {
     this.provider.logger.trace(`Swing mode changed to ${value}`);
 
-    this.swingMode = value;
-    this.provider.setAttributeValue('swing_mode', this.swingMode);
+    this.provider.setAttributeState(attribute, { swing_mode: value });
   };
 
   onClimatePresetModeChanged = async (attribute: ClimateAttribute, value: string): Promise<void> => {
     this.provider.logger.trace(`Preset mode changed to ${value}`);
 
-    this.presetMode = value;
-    this.provider.setAttributeValue('preset_mode', this.presetMode);
+    this.provider.setAttributeState(attribute, { preset_mode: value });
   };
 
   onTargetHumidityChanged = async (attribute: ClimateAttribute, value: number): Promise<void> => {
     this.provider.logger.trace(`Target humidity changed to ${value}`);
 
-    this.targetHumidity = value;
-    this.provider.setAttributeValue('target_humidity', this.targetHumidity);
+    this.provider.setAttributeState(attribute, { target_humidity: value });
   };
 
   onClimateModeChanged = async (attribute: ClimateAttribute, value: string): Promise<void> => {
     this.provider.logger.trace(`HVAC mode changed to ${value}`);
 
-    this.mode = value;
-    this.provider.setAttributeValue('mode', this.mode);
+    this.provider.setAttributeState(attribute, { mode: value });
   };
 }
 
