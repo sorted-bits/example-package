@@ -150,6 +150,7 @@ class ExampleDevice implements Device, SceneDevice, LightDevice, SwitchDevice, N
     // Here we are triggering the QuantumHub API to update the value of the `time` attribute.
     if (this.timeAttribute) {
       this.provider.setAttributeState(this.timeAttribute, { state: currentDate.toLocaleString('nl-NL', { timeZone: timezone }) });
+      this.provider.logger.trace(`Setting time: ${currentDate.toLocaleString('nl-NL', { timeZone: timezone })}`);
     }
 
     //this.provider.logger.trace(`Setting time: ${currentDate.toLocaleString('nl-NL', { timeZone: timezone })}`);
@@ -158,6 +159,7 @@ class ExampleDevice implements Device, SceneDevice, LightDevice, SwitchDevice, N
 
     if (this.temperatureAttribute) {
       this.provider.setAttributeState(this.temperatureAttribute, { state: randomValue });
+      this.provider.logger.trace(`Setting random temperature: ${randomValue}`);
     }
 
     if (this.locationAttribute) {
