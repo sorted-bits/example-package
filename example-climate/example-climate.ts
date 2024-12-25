@@ -65,6 +65,7 @@ class ExampleClimate implements ClimateDevice {
     }
 
     this.provider.setAttributeState(this.climateAttribute, this.climateState);
+    this.provider.setAvailability(true);
   };
 
   /**

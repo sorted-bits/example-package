@@ -115,7 +115,7 @@ class ExampleDevice implements Device, SceneDevice, LightDevice, SwitchDevice, N
     }, 1000);
 
     this.provider.cache.set('last_action', 'start');
-
+    this.provider.setAvailability(true);
   };
 
   /**
